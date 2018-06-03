@@ -1,0 +1,23 @@
+module.exports = [
+  'real-estate/apartments-sale/search/tab=users/',
+  'real-estate/commercial-sale/search/tab=users/',
+  'real-estate/out-of-town/lands/search/tab=users/',
+  'real-estate/garage/search/tab=users/',
+  'real-estate/rent/search/tab=users/',
+  'real-estate/commercial/search/tab=users/',
+  'cars/passenger/search/tab=users/',
+  'electronics-technics/search/tab=users/',
+  'building/search/tab=users/',
+  'communication/search/tab=users/',
+  'computers-devices/search/tab=users/',
+  'apparel-footwear/search/tab=users/',
+  'children/search/tab=users/',
+  'arts-music/search/tab=users/',
+  'books-papers/search/tab=users/',
+  'sports-tourism/search/tab=users/',
+  'animals-plants/search/tab=users/',
+  'furniture-interior/search/tab=users/',
+  'garden/search/tab=users/',
+  'equipment/search/tab=users/',
+  'business/search/tab=users/'
+]

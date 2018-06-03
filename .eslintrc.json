@@ -1,0 +1,48 @@
+{
+  "parser": "babel-eslint",
+  "plugins": [
+    "standard"
+  ],
+  "parserOptions": {
+    "ecmaFeatures": {
+      "modules": true
+    }
+  },
+  "env": {
+    "node": true,
+    "es6": true
+  },
+  "extends" : [
+    "eslint:recommended"
+  ],
+  "settings": {
+  },
+  "globals": {
+    "__base": false,
+    "__src": false,
+    "__load": false
+  },
+  "rules" : {
+    "class-methods-use-this": 0,
+    "prefer-template": 0,
+    "no-param-reassign": 0,
+    "no-shadow": 0,
+    "prefer-destructuring": 0,
+    "no-void": 0,
+    "func-names": 0,
+    "arrow-body-style": 0,
+    "prefer-const": ["error", {
+      "destructuring": "all"
+    }],
+    "semi": ["error", "never"],
+    "comma-dangle": ["error", "never"],
+    "no-underscore-dangle": 0,
+    "no-use-before-define": ["error", { "functions": false, "classes": true, "variables": true }],
+    "object-curly-newline": ["error", { "consistent": true }],
+    "no-mixed-operators": ["error", { "allowSamePrecedence": true }],
+    "padded-blocks": ["error", { "classes": "always" }],
+    "lines-between-class-members": ["error", "always", { "exceptAfterSingleLine": true }],
+    "consistent-return": ["error", { "treatUndefinedAsUnspecified": true }],
+    "no-constant-condition": ["error", { "checkLoops": false }]
+  }
+}

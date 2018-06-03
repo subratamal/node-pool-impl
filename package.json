@@ -1,0 +1,39 @@
+{
+  "name": "scraper-v2",
+  "version": "1.0.0",
+  "description": "Classified Websites Scraper",
+  "main": "src/main",
+  "author": "Trong Nguyen <trong.nd@outlook.com>",
+  "license": "MIT",
+  "scripts": {
+    "start": "node .",
+    "lint": "eslint ./src",
+    "proxies:import": "node scripts/import_proxies scripts/import_proxies/proxies.txt",
+    "proxies:test": "node scripts/test_proxies scripts/test_proxies/proxies.txt",
+    "cache:flush": "node scripts/flush_cache"
+  },
+  "dependencies": {
+    "bunyan": "^1.8.12",
+    "cheerio": "^1.0.0-rc.2",
+    "fs-extra": "^5.0.0",
+    "glob": "^7.1.2",
+    "html-to-text": "^4.0.0",
+    "js-yaml": "^3.11.0",
+    "knex": "^0.14.4",
+    "leveldown": "^3.0.0",
+    "levelup": "^2.0.2",
+    "lodash": "^4.17.5",
+    "moment": "^2.22.0",
+    "mysql2": "^1.5.3",
+    "p-limit": "^1.2.0",
+    "request": "^2.85.0",
+    "request-promise": "^4.2.2",
+    "slug": "^0.9.1",
+    "to-time": "^1.0.2"
+  },
+  "devDependencies": {
+    "babel-eslint": "^8.2.1",
+    "eslint": "^4.16.0",
+    "eslint-plugin-standard": "^3.0.1"
+  }
+}
