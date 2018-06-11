@@ -24,7 +24,7 @@ async function fetchAd({ ad, proxy }) {
   const { address, phoneToken } = adInfo
 
   // delay fetch phone number
-  await Promise.delay(5000)
+  // await Promise.delay(5000)
 
   const phoneNumbers = await fetchPhoneNumbers({ ad, phoneToken, proxy })
 

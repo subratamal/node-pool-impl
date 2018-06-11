@@ -31,7 +31,7 @@ class ListRunner {
 
     this._logger.info({ pages }, 'fetching pages')
 
-    this._done = 0
+		this._done = 0
 
     await ProxyManager.pool('list')
       .threads(lodash.times(pages), index => this._tryRunPage(index + 1))

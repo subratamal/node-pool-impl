@@ -34,7 +34,8 @@ async function start() {
 
   const tasks = sites.map(runWorker)
 
-  await Promise.all(tasks)
+  // run all eligible sites concurrently
+	await Promise.all(tasks)
 }
 
 async function runWorker(site) {
