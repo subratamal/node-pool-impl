@@ -19,9 +19,9 @@ async function spawnWorker(args) {
 }
 
 function trySpawn(deferred, args) {
-	// `--inspect-brk=${9229 + JSON.parse(args).site.id}`,
-	const proc = spawn('node', [
-		WORKER,
+  // `--inspect-brk=${9229 + JSON.parse(args).site.id}`,
+  const proc = spawn('node', [
+    WORKER,
 		args
 	], {
 		stdio: ['ignore', process.stdout, process.stderr]
