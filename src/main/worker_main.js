@@ -75,7 +75,10 @@ async function runWorker(args, logger) {
 }
 
 async function initSiteRunnerPool(site, categoryLinks, logger) {
-  const nodeWorkerPool = new NodeWorkerPool(SITE_RUNNER_WORKER, [], {}, {
+  const args = process.env.NODE_ENV === 'production' ?
+    ['--max-old-space-size=8196', '--nouse-idle-notification'] : []
+
+  const nodeWorkerPool = new NodeWorkerPool(SITE_RUNNER_WORKER, args, {}, {
 		size: categoryLinks.length,
 		taskCompletedMsg: 'WORKER_TASK_COMPLETED',
 		createClientWorkData: createClientWorkData(site, categoryLinks)

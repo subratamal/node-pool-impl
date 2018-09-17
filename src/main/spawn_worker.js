@@ -19,8 +19,11 @@ async function spawnWorker(args) {
 }
 
 function trySpawn(deferred, args) {
+  const args = process.env.NODE_ENV === 'production' ?
+    ['--max-old-space-size=8196', '--nouse-idle-notification'] : []
+
   const proc = spawn('node', [
-    // `--inspect-brk=${9229 + JSON.parse(args).site.id}`,
+    ...args,
     WORKER,
 		args
 	], {
