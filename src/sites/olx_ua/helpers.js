@@ -9,7 +9,7 @@ const BASE_URL = exports.BASE_URL = 'https://www.olx.ua'
 exports.buildUrl = function ({
 	link,
 	price,
-	page
+	pageIndex
 }) {
 	const url = {
 		baseUrl: BASE_URL,
@@ -26,8 +26,8 @@ exports.buildUrl = function ({
 		url.qs['search[filter_float_price:to]'] = price.end
 	}
 
-	if (page && page > 1) {
-		url.qs['page'] = page
+	if (pageIndex && pageIndex > 1) {
+		url.qs['page'] = pageIndex
 	}
 
 	return url
@@ -111,7 +111,7 @@ exports.countListPages = function (html) {
 }
 
 exports.listAds = function (html, {
-	page
+	pageIndex
 }) {
 	if (process.env.OPTIMIZED_HTML_PARSE) {
 		const tmpHtml = html.match(/(<div class="rel\s+listHandler.*)<div id="skycraperMax">/sm)
@@ -140,7 +140,7 @@ exports.listAds = function (html, {
 		.toArray()
 		// paid ads are repeated every page
 		// so only scrape paid ads for the first page
-		.filter(ad => !ad.paid || page === 1)
+		.filter(ad => !ad.paid || pageIndex === 1)
 
 	return ads
 }

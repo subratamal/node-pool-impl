@@ -1,5 +1,4 @@
-const lodash = require('lodash')
-const LinksRunner = __src('runners/links_runner')
+const LinksRunner = require('./../../runners/links_runner')
 const createListRunner = require('./list_runner')
 const createAdRunner = require('./ad_runner')
 
@@ -10,8 +9,9 @@ module.exports = {
   adRunner: createAdRunner
 }
 
-function createSiteRunner() {
+function createSiteRunner(link) {
   const runner = new LinksRunner({
+    link,
     links: getLinks(),
     linkRunner: createListRunner
   })
@@ -22,7 +22,7 @@ function createSiteRunner() {
 function getLinks() {
   const links = []
 
-  lodash.forEach(LINKS, link => {
+  LINKS.map(link => {
     links.push({ path: link })
   })
 

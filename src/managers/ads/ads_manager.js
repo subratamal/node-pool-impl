@@ -1,8 +1,8 @@
-const LogManager = __src('managers/log')
-const CacheManager = __src('managers/cache')
-const ProxyManager = __src('managers/proxy')
-const commonHelpers = __src('helpers/common')
-const TaskQueue = __src('utils/task_queue')
+const LogManager = require('managers/log')
+const CacheManager = require('managers/cache')
+const ProxyPool = require('managers/proxy')
+const commonHelpers = require('helpers/common')
+const TaskQueue = require('utils/task_queue')
 
 class AdsManager {
 
@@ -16,7 +16,7 @@ class AdsManager {
     this._queue = new TaskQueue({
       name: 'ads_manager',
       concurrent: true,
-      threads: () => ProxyManager.pool('ad').threshold
+      threads: () => ProxyPool.pool('ad').threshold
     })
 
     await this._loadAds()

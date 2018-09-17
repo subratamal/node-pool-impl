@@ -1,7 +1,7 @@
 const lodash = require('lodash')
 const knex = require('./knex')
 const helpers = require('./helpers')
-const PhoneNumbersModel = require('./phone_numbers_model')
+// const PhoneNumbersModel = require('./phone_numbers_model')
 
 const TABLE = 'mobile_numbers'
 const FIELDS = ['number', 'city_id', 'area_id', 'district_id']

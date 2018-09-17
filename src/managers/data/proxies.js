@@ -2,7 +2,7 @@ const lodash = require('lodash')
 const knex = require('./knex')
 
 const TABLE = 'proxies'
-const FIELDS = ['id', 'country_code', 'ip', 'port', 'username', 'password']
+const FIELDS = ['id', 'country_code', 'ip', 'port', 'username', 'password', 'provider']
 
 exports.fetchProxies = async function(countryCodes) {
   const rows = await knex
@@ -15,6 +15,7 @@ exports.fetchProxies = async function(countryCodes) {
     countryCodes = lodash.concat(countryCodes)
 
     proxies = proxies.filter(proxy => countryCodes.includes(proxy.countryCode))
+      .filter(proxy => proxy.provider === 'BP')
   }
 
   return proxies
@@ -29,6 +30,7 @@ function toProxy(row) {
     host: row.ip,
     port: row.port,
     username: row.username,
-    password: row.password
+    password: row.password,
+    provider: row.provider
   }
 }

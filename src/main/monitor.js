@@ -1,6 +1,7 @@
 const ScheduleManager = __src('managers/schedule')
 const Logger = __src('utils/logger')
 const spawnWorker = require('./spawn_worker')
+const LINKS_PARALLEL_RUN = 2
 
 class Monitor {
 
@@ -29,7 +30,7 @@ class Monitor {
 
     this._logger.info('cycle started')
 
-    await spawnWorker({ site: this._site })
+    await spawnWorker({ site: this._site, linksParallelRun: LINKS_PARALLEL_RUN })
 
     this._logger.info('cycle finished')
 

@@ -1,4 +1,4 @@
-const ListRunner = __src('runners/list_runner')
+const ListRunner = require('../../runners/list_runner')
 const helpers = require('./helpers')
 
 module.exports = createListRunner
@@ -22,10 +22,10 @@ async function fetchPages({ link, proxy }) {
   return helpers.countListPages(html)
 }
 
-async function fetchPageAds({ link, page, proxy }) {
-  const url = helpers.buildUrl({ link: link.link, price: link.price, page })
+async function fetchPageAds({ link, pageIndex, proxy }) {
+  const url = helpers.buildUrl({ link: link.link, price: link.price, pageIndex })
 
   const html = await proxy.request(url)
 
-  return helpers.listAds(html, { page })
+  return helpers.listAds(html, { pageIndex })
 }

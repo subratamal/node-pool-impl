@@ -1,5 +1,5 @@
 const lodash = require('lodash')
-const LinksRunner = __src('runners/links_runner')
+const LinksRunner = require('./../../runners/links_runner')
 const createAutoLinkRunner = require('./link_runners/auto')
 const createDomLinkRunner = require('./link_runners/dom')
 const createAdvertisementLinkRunner = require('./link_runners/advertisement')
@@ -14,8 +14,9 @@ module.exports = {
   adRunner: createAdRunner
 }
 
-function createSiteRunner() {
+function createSiteRunner(link) {
   const runner = new LinksRunner({
+    link,
     links: getLinks(),
     linkRunner: createLinkRunner
   })

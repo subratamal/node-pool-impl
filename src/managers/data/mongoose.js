@@ -4,7 +4,7 @@ const Config = __src('config')
 class Database {
 
 	constructor() {
-		this._connect()
+		// this._connect()
 	}
 
 	_connect() {

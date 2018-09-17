@@ -1,11 +1,11 @@
 const lodash = require('lodash')
-const Config = __src('config')
-const DataManager = __src('managers/data')
-const CacheManager = __src('managers/cache')
-const LogManager = __src('managers/log')
-const AddressManager = __src('managers/address')
-const StatsManager = __src('managers/stats')
-const TaskQueue = __src('utils/task_queue')
+const Config = require('./../../config')
+const DataManager = require('./../../managers/data')
+const CacheManager = require('./../../managers/cache')
+const LogManager = require('./../../managers/log')
+const AddressManager = require('./../../managers/address')
+const StatsManager = require('./../../managers/stats')
+const TaskQueue = require('./../../utils/task_queue')
 
 const DEFAULT_FLUSH_THRESHOLD = 50
 

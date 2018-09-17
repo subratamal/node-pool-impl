@@ -1,6 +1,6 @@
-const lodash = require('lodash')
-const LinksRunner = __src('runners/links_runner')
-const commonHelpers = __src('helpers/common')
+// const lodash = require('lodash')
+const LinksRunner = require('./../../runners/links_runner')
+const commonHelpers = require('./../../helpers/common')
 const createPriceRangeRunner = require('./price_range_runner')
 const createListRunner = require('./list_runner')
 const createAdRunner = require('./ad_runner')
@@ -12,8 +12,9 @@ module.exports = {
   adRunner: createAdRunner
 }
 
-function createSiteRunner() {
+function createSiteRunner(link) {
   const runner = new LinksRunner({
+    link,
     links: getLinks(),
     linkRunner: createLinkRunner
   })
@@ -32,11 +33,11 @@ function createLinkRunner({ link }) {
 function getLinks() {
   const links = []
 
-  lodash.forEach(LINKS.price_range, link => {
+  LINKS.price_range.map(link => {
     links.push({ category: link })
   })
 
-  lodash.forEach(LINKS.single, link => {
+  LINKS.single.map(link => {
     link = commonHelpers.parseLink(link)
 
     links.push({ category: link.path, params: link.params, single: true })

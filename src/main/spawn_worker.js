@@ -3,7 +3,7 @@ const {
 	spawn
 } = require('child_process')
 
-const WORKER = path.join(__dirname, 'worker.js')
+const WORKER = path.join(__dirname, 'worker_main.js')
 const RESPAWN_DELAY = 1000
 
 module.exports = spawnWorker
@@ -19,12 +19,12 @@ async function spawnWorker(args) {
 }
 
 function trySpawn(deferred, args) {
-  // `--inspect-brk=${9229 + JSON.parse(args).site.id}`,
   const proc = spawn('node', [
+    // `--inspect-brk=${9229 + JSON.parse(args).site.id}`,
     WORKER,
 		args
 	], {
-		stdio: ['ignore', process.stdout, process.stderr]
+		stdio: ['ignore', process.stdout, process.stderr, 'ipc']
 	})
 
 	proc.on('close', async (code) => {

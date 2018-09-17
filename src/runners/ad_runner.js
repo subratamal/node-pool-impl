@@ -1,11 +1,11 @@
 const lodash = require('lodash')
-const CacheManager = __src('managers/cache')
-const LogManager = __src('managers/log')
-const ProxyManager = __src('managers/proxy')
-const HistoryManager = __src('managers/history')
-const StatsManager = __src('managers/stats')
-const PhoneNumberManager = __src('managers/phone_number')
-const commonHelpers = __src('helpers/common')
+const CacheManager = require('managers/cache')
+const LogManager = require('managers/log')
+const ProxyManager = require('managers/proxy')
+const HistoryManager = require('managers/history')
+const StatsManager = require('managers/stats')
+const PhoneNumberManager = require('managers/phone_number')
+const commonHelpers = require('helpers/common')
 
 const MAX_RETRIES = 10
 

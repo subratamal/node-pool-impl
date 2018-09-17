@@ -2,7 +2,7 @@ require('../utils/boot')
 
 const lodash = require('lodash')
 const Logger = __src('utils/logger')
-const SiteRunner = __src('runners/site_runner')
+const SiteRunner = require('./../runners/site_runner')
 
 let logger
 
@@ -13,7 +13,7 @@ start()
 async function start() {
   const args = getArgs()
 
-  const { site } = args
+  const { site, links_parallel_run } = args
 
   logger = new Logger(`sites/${site.key}/site`).sub('worker')
 
@@ -45,10 +45,10 @@ async function start() {
 async function runWorker(args) {
   const { site } = args
 
-  const options = __src('sites', site.key, 'scraper.js')
+  // const options = __src('sites', site.key, 'scraper.js')
+  const options = require(`./../sites/${site.key}/scraper`)
 
   const scraper = new SiteRunner(site, options)
-
   await scraper.run()
 }
 

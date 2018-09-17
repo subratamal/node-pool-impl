@@ -12,18 +12,25 @@ const { createLimit } = require('./helpers')
 const SYNC_INTERVAL = Config.toTime('5m', 'ms')
 const RELEASE_PROXIES_INTERVAL = Config.toTime('1s', 'ms')
 const SUSPEND_PROXIES_INTERVAL = Config.toTime('1s', 'ms')
+// const SYNC_INTERVAL = Config.toTime('15m', 'ms')
+// const RELEASE_PROXIES_INTERVAL = Config.toTime('5m', 'ms')
+// const SUSPEND_PROXIES_INTERVAL = Config.toTime('5m', 'ms')
 const CHECK_SUSPENDED_PROXIES_INTERVAL = Config.toTime('30m', 'ms')
 const CHECK_SUSPENDED_PROXIES_THRESHOLD = 50
 const CHECK_ACTIVE_PROXIES_INTERVAL = Config.toTime('5s', 'ms')
+// const CHECK_ACTIVE_PROXIES_INTERVAL = Config.toTime('5m', 'ms')
 
 const DEFAULT_DELAY = [5, 10]
 const DEFAULT_RETRIES = 2
 const DEFAULT_TIMEOUT = Config.toTime('90s', 'ms')
+// const DEFAULT_RETRIES = 1
+// const DEFAULT_TIMEOUT = Config.toTime('900s', 'ms')
 
 class ProxyManager {
 
-  async init(site, options) {
+  async init(site, link, options) {
     this._site = site
+    this._link = link
 
     this._options = lodash.assign({
       retries: DEFAULT_RETRIES,

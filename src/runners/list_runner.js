@@ -1,11 +1,11 @@
 const lodash = require('lodash')
-const CacheManager = __src('managers/cache')
-const LogManager = __src('managers/log')
-const ProxyManager = __src('managers/proxy')
-const StatsManager = __src('managers/stats')
-const PhoneNumberManager = __src('managers/phone_number')
-const AdsManager = __src('managers/ads')
-const commonHelpers = __src('helpers/common')
+const CacheManager = require('../managers/cache')
+const LogManager = require('../managers/log')
+const ProxyPool = require('../managers/proxy')
+const StatsManager = require('../managers/stats')
+const PhoneNumberManager = require('../managers/phone_number')
+const AdsManager = require('../managers/ads')
+const commonHelpers = require('../helpers/common')
 
 class ListRunner {
 
@@ -25,16 +25,16 @@ class ListRunner {
   async run() {
     this._logger.info('fetching pages count')
 
-    const pages = this._pages = await this._tryFetchPages()
+    const pageCount = this._pages = await this._tryFetchPages()
 
-    this._logger.info('found %d pages', pages)
+    this._logger.info('found %d pages', pageCount)
 
-    this._logger.info({ pages }, 'fetching pages')
+    this._logger.info({ pageCount }, 'fetching pages')
 
 		this._done = 0
 
-    await ProxyManager.pool('list')
-      .threads(lodash.times(pages), index => this._tryRunPage(index + 1))
+    await ProxyPool.pool('list')
+      .threads(lodash.times(pageCount), pageIndex => this._tryRunPage(pageIndex + 1))
 
     await this._cache.destroy()
 
@@ -73,7 +73,7 @@ class ListRunner {
     const { fetchPages } = this._options
     if (!lodash.isFunction(fetchPages)) return 0
 
-    return ProxyManager.pool('list').session({
+    return ProxyPool.pool('list').session({
       run: proxy => this._options.fetchPages({
         link: this._link,
         proxy,
@@ -85,13 +85,13 @@ class ListRunner {
     })
   }
 
-  async _tryRunPage(page) {
+  async _tryRunPage(pageIndex) {
     this._logger.debug({
-      page,
+      pageIndex,
       pages: this._pages
     }, 'page ads - fetching')
 
-    const keyPageResults = 'page-results:' + page
+    const keyPageResults = 'page-results:' + pageIndex
 
     let ads = await this._cache.get(keyPageResults, null)
 
@@ -99,14 +99,14 @@ class ListRunner {
       this._done += 1
 
       this._logger.debug({
-        page,
+        page: pageIndex,
         pages: this._pages,
         done: this._done,
         ads: ads.length
       }, 'page ads - use cache')
     } else {
-      ads = await ProxyManager.pool('list').session({
-        run: proxy => this._runPage(page, proxy),
+      ads = await ProxyPool.pool('list').session({
+        run: proxy => this._runPage(pageIndex, proxy),
         onError: (error) => {
           this._logger.error(error, 'fetch page ads error -> retry')
         }
@@ -118,21 +118,21 @@ class ListRunner {
     this._done += 1
 
     this._logger.debug({
-      page,
+      pageIndex,
       pages: this._pages,
       done: this._done,
       ads: ads.length
     }, 'page ads - fetched')
 
-    this._logger.info({ page }, 'found %d ads', ads.length)
+    this._logger.info({ pageIndex }, 'found %d ads', ads.length)
 
     await this._enqueueAds(ads)
   }
 
-  async _runPage(page, proxy) {
+  async _runPage(pageIndex, proxy) {
     const ads = await this._options.fetchPageAds({
       link: this._link,
-      page,
+      pageIndex,
       proxy,
       logger: this._logger
     })

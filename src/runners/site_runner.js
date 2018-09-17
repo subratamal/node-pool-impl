@@ -1,29 +1,41 @@
 const path = require('path')
 const fs = require('fs-extra')
-const LogManager = __src('managers/log')
-const CacheManager = __src('managers/cache')
-const DataManager = __src('managers/data')
-const ProxyManager = __src('managers/proxy')
-const AddressManager = __src('managers/address')
-const HistoryManager = __src('managers/history')
-const PhoneNumberManager = __src('managers/phone_number')
-const StatsManager = __src('managers/stats')
-const AdsManager = __src('managers/ads')
-const File = __src('utils/file')
+const LogManager = require('./../managers/log')
+const CacheManager = require('./../managers/cache')
+const DataManager = require('./../managers/data')
+const ProxyPool = require('./../managers/proxy')
+const AddressManager = require('./../managers/address')
+const HistoryManager = require('./../managers/history')
+const PhoneNumberManager = require('./../managers/phone_number')
+const StatsManager = require('./../managers/stats')
+const AdsManager = require('./../managers/ads')
+const File = require('./../utils/file')
+
+// const LogManager = __src('managers/log')
+// const CacheManager = __src('managers/cache')
+// const DataManager = __src('managers/data')
+// const ProxyManager = __src('managers/proxy')
+// const AddressManager = __src('managers/address')
+// const HistoryManager = __src('managers/history')
+// const PhoneNumberManager = __src('managers/phone_number')
+// const StatsManager = __src('managers/stats')
+// const AdsManager = __src('managers/ads')
+// const File = __src('utils/file')
 
 const RESTART_DELAY = 1000
 
 class SiteRunner {
 
-  constructor(site, options) {
+  constructor(site, link, options) {
     this._site = site
     this._options = options
+    this._link = link
   }
 
   async run() {
     await this._initManagers()
 
-    this._stage = new File(path.join(__base, 'data/schedule', this._site.key, 'stage'))
+    this._stage = new File(path.join(__base, 'data/schedule', this._site.key, this._link.categoryLink, 'stage'))
     this._logger = LogManager.for('site').sub('site')
 
     await this._tryRun()
@@ -78,11 +90,12 @@ class SiteRunner {
 
   async _initManagers() {
     const site = this._site
+    const link = this._link
     const { proxy, countries, adRunner } = this._options
 
-    await LogManager.init(site)
-    await CacheManager.init(site)
-    await ProxyManager.init(site, proxy)
+    await LogManager.init(site, link)
+    await CacheManager.init(site, link)
+    await ProxyPool.init(site, link, proxy)
     await AddressManager.init(site, { countries })
     await HistoryManager.init(site)
     await PhoneNumberManager.init(site)
@@ -129,7 +142,7 @@ class SiteRunner {
   }
 
   async _run() {
-    const runner = await this._options.siteRunner()
+    const runner = await this._options.siteRunner(this._link)
     await runner.run()
 
     this._runCalled = true
@@ -166,7 +179,6 @@ class SiteRunner {
       await fs.remove(path.join(dir, cache))
     }
   }
-
 }
 
 module.exports = SiteRunner

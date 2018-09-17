@@ -2,9 +2,9 @@ require('../utils/boot')
 
 const path = require('path')
 const fs = require('fs-extra')
-const Config = __src('config')
-const DataManager = __src('managers/data')
-const Logger = __src('utils/logger')
+const Config = require('./../config')
+const DataManager = require('./../managers/data')
+const Logger = require('./../utils/logger')
 const Monitor = require('./monitor')
 
 const logger = new Logger('main')
@@ -46,7 +46,8 @@ async function runWorker(site) {
     return
   }
 
-  const monitor = new Monitor(site)
+  const parallelProcess = Config.site(site.key).get('parallel_process', 1)
+  const monitor = new Monitor({ ...site, parallelProcess })
 
   await monitor.run()
 }

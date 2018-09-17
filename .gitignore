@@ -9,3 +9,7 @@ trongcopy.log
 backlog-time-estimation.md
 *v8.log
 processes.log
+*.json
+.idea/
+data-bak/
+olx_ua/

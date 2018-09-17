@@ -63,7 +63,7 @@ class PriceRangeRunner {
         await cache.put(keyListInfo, listInfo)
       }
 
-      this._logger.info(listInfo, 'list info')
+      this._logger.info({...listInfo, ...{ cache_key: keyListInfo }}, 'list info')
 
       const action = await this._listAction(listInfo, lastListInfo)
 

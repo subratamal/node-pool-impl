@@ -2,9 +2,9 @@ const path = require('path')
 const fs = require('fs-extra')
 const lodash = require('lodash')
 const bunyan = require('bunyan')
-const InstancePool = __src('utils/instance_pool')
-const { sanitizePath } = __src('utils/misc')
-const errors = __src('runners/errors')
+const InstancePool = require('./../../utils/instance_pool')
+const { sanitizePath } = require('./../../utils/misc')
+const errors = require('./../../runners/errors')
 
 const PRODUCTION = (process.env.NODE_ENV === 'production')
 const STDOUT_LOG_LEVEL = process.env.DEBUG ? 'debug' : 'info'

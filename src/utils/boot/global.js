@@ -7,6 +7,8 @@ const glob = require('glob')
 
 global.__base = path.resolve(__dirname, '../../..')
 
+require('app-module-path').addPath(`${global.__base}/src`)
+
 global.__src = function(...args) {
   return require(path.resolve(global.__base, 'src', ...args))
 }

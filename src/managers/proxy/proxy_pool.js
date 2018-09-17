@@ -1,5 +1,5 @@
 const lodash = require('lodash')
-const InstancePool = __src('utils/instance_pool')
+const InstancePool = require('./../../utils/instance_pool')
 const ProxyManager = require('./proxy_manager')
 
 const POOL = new InstancePool()
@@ -16,17 +16,17 @@ function pool(name) {
   return POOL.get(name)
 }
 
-async function init(site, options) {
+async function init(site, link, options) {
   const listPool = new ProxyManager()
   const adPool = new ProxyManager()
 
-  await listPool.init(site, {
+  await listPool.init(site, link, {
     countries: site.listProxyCountries,
     maxProxies: site.listMaxProxies,
     delay: [1000, 2000]
   })
 
-  await adPool.init(site, lodash.assign({
+  await adPool.init(site, link, lodash.assign({
     countries: site.adProxyCountries,
     maxProxies: site.adMaxProxies
   }, options))

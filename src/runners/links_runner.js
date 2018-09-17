@@ -35,12 +35,13 @@ class LinksRunner {
 
     const index = await cache.get(keyLinkIndex, 0)
 
-    for (let i = index; i < links.length; i++) {
-      await cache.put(keyLinkIndex, i)
+    // for (let i = index; i < links.length; i++) {
+    //   await cache.put(keyLinkIndex, i)
 
-      await this._runLink(links[i])
-    }
+    //   await this._runLink(links[i])
+    // }
 
+    await this._runLink(this._options.link)
     await cache.del(keyLinks)
     await cache.del(keyLinkIndex)
   }

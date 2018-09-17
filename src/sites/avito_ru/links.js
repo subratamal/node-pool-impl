@@ -1,26 +1,33 @@
 const lodash = require('lodash')
-const LinksRunner = require('./../../runners/links_runner')
 const ProxyManager = require('./../../managers/proxy')
-const createPriceRangeRunner = require('./price_range_runner')
-const createAdRunner = require('./ad_runner')
 const helpers = require('./helpers')
+const commonHelpers = require('./../../helpers/common')
 
 module.exports = {
-  siteRunner: createSiteRunner,
-  adRunner: createAdRunner,
-  proxy: {
-    delay: [10, 20]
-  }
+  tryFetchLinks: tryFetchLinks,
+  fetchLinks,
+  addCategoryLinkLabel
 }
 
-async function createSiteRunner(link) {
-  const runner = new LinksRunner({
-    link,
-    fetchLinks,
-    linkRunner: createPriceRangeRunner
-  })
+async function tryFetchLinks(options, { logger }) {
+  const { links, fetchLinks } = options
 
-  return runner
+  if (Array.isArray(links)) {
+    return links
+  }
+
+  if (!lodash.isFunction(fetchLinks)) {
+    return []
+  }
+
+  do {
+    try {
+      return await fetchLinks({ logger })
+    } catch (error) {
+      logger.error(error, 'fetch links error -> retry')
+      await Promise.delay(1000)
+    }
+  } while (true)
 }
 
 async function fetchLinks(...args) {
@@ -51,6 +58,15 @@ function getCategoryLinks(url, {
         err: error,
         url
       }, 'unable to get links')
+    }
+  })
+}
+
+function addCategoryLinkLabel(links) {
+  return links.map(link => {
+    return {
+      categoryLink: commonHelpers.standardName(link.url),
+      ...link
     }
   })
 }
