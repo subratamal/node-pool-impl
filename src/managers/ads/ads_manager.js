@@ -1,3 +1,4 @@
+const lodash = require('lodash')
 const LogManager = require('managers/log')
 const CacheManager = require('managers/cache')
 const ProxyPool = require('managers/proxy')
@@ -12,6 +13,11 @@ class AdsManager {
     this._options = options
 
     this._cache = CacheManager.for('running_ads')
+    this._uniqueCacheKey = 'running_ads'
+    this._cacheKeys = {
+      runningAds: CacheManager.key(`${this._uniqueCacheKey}`)
+    }
+
     this._logger = LogManager.for('site').sub('managers.ads')
 
     this._queue = new TaskQueue({
@@ -34,7 +40,17 @@ class AdsManager {
   }
 
   async _loadAds() {
-    const list = await this._cache.all()
+    let list = [] // = await this._cache.all()
+
+    let runningAds = await redisClient.hgetallAsync(this._cacheKeys.runningAds)
+    if (runningAds && lodash.isObject(runningAds)) {
+      list = Object.keys(runningAds).map(runningAd => {
+        return {
+          key: runningAd,
+          value: commonHelpers.tryJSONParse(runningAds[runningAd])
+        }
+      })
+    }
 
     for (const item of list) {
       await this._enqueue(item.value, false)
@@ -45,7 +61,8 @@ class AdsManager {
     const adId = commonHelpers.toId(ad)
 
     if (saveCache) {
-      await this._cache.put(adId, ad)
+      // await this._cache.put(adId, ad)
+      await redisClient.hsetAsync(this._cacheKeys.runningAds, adId, JSON.stringify(ad))
     }
 
     this._queue.enqueue(() => this._tryRunAd(adId, ad))
@@ -75,9 +92,9 @@ class AdsManager {
     await runner.run()
 
     // remove ad from queue
-    await this._cache.del(adId)
+    // await this._cache.del(adId)
+    await redisClient.hdelAsync(this._cacheKeys.runningAds, adId)
   }
-
 }
 
 module.exports = new AdsManager()

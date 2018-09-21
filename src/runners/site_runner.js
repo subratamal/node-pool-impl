@@ -105,7 +105,7 @@ class SiteRunner {
   }
 
   async _precycle() {
-    this._logger.info('prepaire the cycle')
+    this._logger.info('prepare the cycle')
 
     await this._cleanup()
     await DataManager.resetSuspendedSiteProxies(this._site.id)
@@ -165,7 +165,7 @@ class SiteRunner {
   }
 
   async _cleanupCache() {
-    const dir = path.join(__base, 'data/cache/sites', this._site.key)
+    const dir = path.join(__base, 'data/cache/sites', this._site.key, this._link.categoryLink)
 
     const caches = [
       'config',

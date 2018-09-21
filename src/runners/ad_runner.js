@@ -19,6 +19,11 @@ class AdRunner {
 
     this._cache = CacheManager.for('ads')
 
+    this._uniqueCacheKey = 'ads'
+    this._cacheKeys = {
+      ads: CacheManager.key(`${this._uniqueCacheKey}`)
+    }
+
     this._logger = LogManager.for('site').sub('runner.ad', {
       ad: this._ad
     })
@@ -42,7 +47,9 @@ class AdRunner {
     if (isDuplicate === true) return
 
     await StatsManager.increaseField(runId, 'links_unique')
-    await this._cache.put(this._adId, 1)
+
+    // await this._cache.put(this._adId, 1)
+    await redisClient.hsetAsync(this._cacheKeys.ads, this._adId, 1)
   }
 
   async _run() {
@@ -85,7 +92,8 @@ class AdRunner {
   }
 
   async _isDuplicateAd() {
-    const ad = await this._cache.get(this._adId)
+    // let ad = await this._cache.get(this._adId)
+    let ad = await redisClient.hgetAsync(this._cacheKeys.ads, this._adId)
     return !!ad
   }
 
