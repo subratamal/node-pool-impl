@@ -1,6 +1,6 @@
 const lodash = require('lodash')
-const AdRunner = require('../../runners/ad_runner')
-const uaHelpers = require('../../helpers/ua')
+const AdRunner = require('runners/ad_runner')
+const uaHelpers = require('helpers/ua')
 const helpers = require('./helpers')
 
 module.exports = createAdRunner

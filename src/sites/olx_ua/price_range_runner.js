@@ -1,9 +1,9 @@
-const PriceRangeRunner = __src('runners/price_range_runner')
-const defaultAction = __src('runners/price_range_runner/actions/default')
+const PriceRangeRunner = require('runners/price_range_runner')
+const defaultAction = require('runners/price_range_runner/actions/default')
 const createListRunner = require('./list_runner')
 const helpers = require('./helpers')
 
-const PRICE_GEARS = __src('helpers/ua/constants/price_gears')
+const PRICE_GEARS = require('helpers/ua/constants/price_gears')
 const PRICE_MAX = 99000000
 const RESULTS_MIN = 2000
 const RESULTS_MAX = 20000

@@ -67,9 +67,12 @@ class NodeWorkerPool extends EventEmitter {
 				mainProcessSafeExit = this.checkMainProcessShutdown()
 			} else {
 				const childNode = childProcess.spawn('node', [
-					this.worker, [...this.args, JSON.stringify(workData)]
-				], this.options)
-				this.emit('task:started', {taskId: childNode.pid, workData, mainProcessSafeExit})
+          this.worker,
+          JSON.stringify(workData),
+          ...this.args,
+        ], this.options)
+
+				this.emit('task:started', { pid: childNode.pid, workData, mainProcessSafeExit })
 
 				this.childProcesses.push(childNode.pid)
 
@@ -83,10 +86,11 @@ class NodeWorkerPool extends EventEmitter {
 
 						mainProcessSafeExit = this.checkMainProcessShutdown(pid)
 						if (mainProcessSafeExit) {
-							resolve({pid, workData, mainProcessSafeExit})
+              this.emit('task:all:completed', { pid: pid, workData, mainProcessSafeExit })
+              resolve({pid, workData, mainProcessSafeExit})
 						}
 
-						this.emit('task:completed', {taskId: pid, workData, mainProcessSafeExit})
+						this.emit('task:completed', { pid: pid, workData, mainProcessSafeExit })
 						this.tryAutoEnqueue()
 					}
 				})
@@ -119,7 +123,7 @@ class NodeWorkerPool extends EventEmitter {
 	createClientWorkData() {
 		const taskData = [...Array(this.settings.size).keys()].map(() => {
 			return {
-				taskId: uuidv4(),
+				pid: uuidv4(),
 				processed: false
 			}
 		})

@@ -1,4 +1,4 @@
-const ScheduleManager = __src('managers/schedule')
+const ScheduleManager = require('managers/schedule')
 const Logger = __src('utils/logger')
 const spawnWorker = require('./spawn_worker')
 const LINKS_PARALLEL_RUN = 2

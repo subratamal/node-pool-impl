@@ -1,13 +1,13 @@
 const lodash = require('lodash')
-const commonHelpers = __src('helpers/common')
-const CacheManager = __src('managers/cache')
-const LogManager = __src('managers/log')
-const ProxyManager = __src('managers/proxy')
+const commonHelpers = require('helpers/common')
+const CacheManager = require('managers/cache')
+const LogManager = require('managers/log')
+const ProxyManager = require('managers/proxy')
+const redisClient = require('managers/data/redis')
 
 const GearedPrice = require('./geared_price')
 
 class PriceRangeRunner {
-
   constructor(options) {
     this._options = options
 
@@ -17,7 +17,18 @@ class PriceRangeRunner {
 
     this._cache = CacheManager.for('config')
 
+    this._uniqueCacheKey = 'config'
+    this._cacheKeys = {
+      priceOptions: CacheManager.key(`${this._uniqueCacheKey}:price-options:${this._linkId}`),
+      listInfo: CacheManager.key(`${this._uniqueCacheKey}:list-info:${this._linkId}`)
+    }
+
     this._logger = LogManager.for('site').sub('runner.price_range', {
+      link: this._link,
+      price: this._price
+    })
+    console.log({
+      message: 'PriceRangeRunner',
       link: this._link,
       price: this._price
     })
@@ -39,7 +50,11 @@ class PriceRangeRunner {
     const keyListInfo = 'list-info:' + this._linkId
 
     // sync last price options
-    const lastPriceOptions = await this._cache.get(keyPriceOptions)
+    let lastPriceOptions = await this._cache.get(keyPriceOptions)
+    lastPriceOptions = await redisClient.getAsync(this._cacheKeys.priceOptions)
+    if (!lastPriceOptions) {
+      lastPriceOptions = commonHelpers.tryJSONParse(lastPriceOptions)
+    }
 
     if (lastPriceOptions) {
       this._price.options(lastPriceOptions)
@@ -49,6 +64,8 @@ class PriceRangeRunner {
 
     let lastListInfo = null
     let listInfo = await cache.get(keyListInfo)
+    listInfo = await redisClient.getAsync(this._cacheKeys.listInfo)
+    listInfo = commonHelpers.tryJSONParse(listInfo)
 
     const debugPriceRanges = +process.env.DEBUG_PRICE_RANGES
     let debugCountPriceRanges = 0
@@ -61,9 +78,10 @@ class PriceRangeRunner {
 
         // save last list info
         await cache.put(keyListInfo, listInfo)
+        await redisClient.setAsync(this._cacheKeys.listInfo, JSON.stringify(listInfo))
       }
 
-      this._logger.info({...listInfo, ...{ cache_key: keyListInfo }}, 'list info')
+      this._logger.info({...listInfo, ...{ cache_key: this._cacheKeys.listInfo }}, 'list info')
 
       const action = await this._listAction(listInfo, lastListInfo)
 
@@ -90,8 +108,10 @@ class PriceRangeRunner {
 
       // delete last list info
       await cache.del(keyListInfo)
+      await redisClient.delAsync(this._cacheKeys.listInfo)
       // save last price options
       await cache.put(keyPriceOptions, this._price.options())
+      await redisClient.setAsync(this._cacheKeys.priceOptions, JSON.stringify(this._price.options()))
 
       lastListInfo = listInfo
       listInfo = null
@@ -99,6 +119,7 @@ class PriceRangeRunner {
 
     // delete price options cache once done
     await cache.del(keyPriceOptions)
+    await redisClient.delAsync(this._cacheKeys.priceOptions)
   }
 
   async _listAction(listInfo, lastListInfo) {

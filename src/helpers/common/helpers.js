@@ -66,3 +66,11 @@ exports.stringifyUrl = function(options) {
 exports.toId = function(data) {
   return Crypto.md5(JSON.stringify(data))
 }
+
+exports.tryJSONParse = function(data) {
+  try {
+    return JSON.parse(data)
+  } catch(err) {
+    return null
+  }
+}

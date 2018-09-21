@@ -15,7 +15,6 @@ module.exports = {
 function createSiteRunner(link) {
   const runner = new LinksRunner({
     link,
-    links: getLinks(),
     linkRunner: createLinkRunner
   })
 

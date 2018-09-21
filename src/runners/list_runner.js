@@ -1,14 +1,14 @@
 const lodash = require('lodash')
-const CacheManager = require('../managers/cache')
-const LogManager = require('../managers/log')
-const ProxyPool = require('../managers/proxy')
-const StatsManager = require('../managers/stats')
-const PhoneNumberManager = require('../managers/phone_number')
-const AdsManager = require('../managers/ads')
-const commonHelpers = require('../helpers/common')
+const CacheManager = require('managers/cache')
+const LogManager = require('managers/log')
+const ProxyPool = require('managers/proxy')
+const StatsManager = require('managers/stats')
+const PhoneNumberManager = require('managers/phone_number')
+const AdsManager = require('managers/ads')
+const redisClient = require('managers/data/redis')
+const commonHelpers = require('helpers/common')
 
 class ListRunner {
-
   constructor(options) {
     this._options = options
 
@@ -16,6 +16,13 @@ class ListRunner {
     this._linkId = commonHelpers.toId(options.link)
 
     this._cache = CacheManager.for('list/' + this._linkId)
+
+    this._uniqueCacheKey = `list-${this._linkId}`
+    this._cacheKeys = {
+      pageCount: CacheManager.key(`${this._uniqueCacheKey}:page-count`),
+      pageAds: (index) => CacheManager.key(`${this._uniqueCacheKey}:${index}:ads`),
+      pageAdsState: (index) => CacheManager.key(`${this._uniqueCacheKey}:${index}:ads:state`)
+    }
 
     this._logger = LogManager.for('site').sub('runner.list', {
       link: this._link
@@ -36,7 +43,8 @@ class ListRunner {
     await ProxyPool.pool('list')
       .threads(lodash.times(pageCount), pageIndex => this._tryRunPage(pageIndex + 1))
 
-    await this._cache.destroy()
+    // await this._cache.destroy()
+    await redisClient.delAsync(`${CacheManager.basePath}:${this._uniqueCacheKey}*`)
 
     await PhoneNumberManager.flush()
     await StatsManager.flush()
@@ -52,7 +60,8 @@ class ListRunner {
 
     const keyPages = 'pages'
 
-    let pages = await this._cache.get(keyPages)
+    // let pages = await this._cache.get(keyPages)
+    let pages = await redisClient.getAsync(this._cacheKeys.pageCount)
 
     if (pages) {
       this._logger.debug({ pages }, 'use cached pages')
@@ -61,7 +70,8 @@ class ListRunner {
 
     pages = await this._fetchPages()
 
-    await this._cache.put(keyPages, pages)
+    // await this._cache.put(keyPages, pages)
+    await redisClient.setAsync(this._cacheKeys.pageCount, pages)
 
     return pages
   }
@@ -86,47 +96,61 @@ class ListRunner {
   }
 
   async _tryRunPage(pageIndex) {
-    this._logger.debug({
-      pageIndex,
-      pages: this._pages
-    }, 'page ads - fetching')
+    try {
+      this._logger.debug({
+        pageIndex,
+        pages: this._pages
+      }, 'page ads - fetching')
 
-    const keyPageResults = 'page-results:' + pageIndex
+      const keyPageResults = 'page-results:' + pageIndex
 
-    let ads = await this._cache.get(keyPageResults, null)
+      // let ads = await this._cache.get(keyPageResults, null)
+      const pageAdIndexKey = this._cacheKeys.pageAds(pageIndex)
+      const adsCached = await redisClient.lrangeAsync(pageAdIndexKey, 0, -1)
+      let ads = adsCached.map(adCached => JSON.parse(adCached)) || null
+      const pageAdIndexKeyExist = await redisClient.existsAsync(pageAdIndexKey)
 
-    if (lodash.isArray(ads)) {
+      if (pageAdIndexKeyExist && lodash.isArray(ads)) {
+        this._done += 1
+
+        this._logger.debug({
+          page: pageIndex,
+          pages: this._pages,
+          done: this._done,
+          ads: ads.length
+        }, 'page ads - use cache')
+      } else {
+        ads = await ProxyPool.pool('list').session({
+          run: proxy => this._runPage(pageIndex, proxy),
+          onError: (error) => {
+            this._logger.error(error, 'fetch page ads error -> retry')
+          }
+        })
+      }
+
+      // await this._cache.put(keyPageResults, ads)
+
+      if (Array.isArray(ads) && ads.length > 0) {
+        const adsStringified = ads.map(ad => JSON.stringify(ad))
+        await redisClient.delAsync(pageAdIndexKey)
+        await redisClient.rpushAsync(pageAdIndexKey, ...adsStringified)
+      }
+
       this._done += 1
 
       this._logger.debug({
-        page: pageIndex,
+        pageIndex,
         pages: this._pages,
         done: this._done,
         ads: ads.length
-      }, 'page ads - use cache')
-    } else {
-      ads = await ProxyPool.pool('list').session({
-        run: proxy => this._runPage(pageIndex, proxy),
-        onError: (error) => {
-          this._logger.error(error, 'fetch page ads error -> retry')
-        }
-      })
+      }, 'page ads - fetched')
+
+      this._logger.info({ pageIndex }, 'found %d ads', ads.length)
+
+      await this._enqueueAds(pageIndex, ads)
+    } catch (error) {
+      this._logger.error(error, 'try run page processing blanket error')
     }
-
-    await this._cache.put(keyPageResults, ads)
-
-    this._done += 1
-
-    this._logger.debug({
-      pageIndex,
-      pages: this._pages,
-      done: this._done,
-      ads: ads.length
-    }, 'page ads - fetched')
-
-    this._logger.info({ pageIndex }, 'found %d ads', ads.length)
-
-    await this._enqueueAds(ads)
   }
 
   async _runPage(pageIndex, proxy) {
@@ -142,25 +166,31 @@ class ListRunner {
     return debugPageAds ? ads.slice(0, debugPageAds) : ads
   }
 
-  async _enqueueAds(ads) {
+  async _enqueueAds(pageIndex, ads) {
     for (const ad of ads) {
-      await this._enqueueAd(ad)
+      await this._enqueueAd(pageIndex, ad)
     }
   }
 
-  async _enqueueAd(ad) {
+  async _enqueueAd(pageIndex, ad) {
     const adId = commonHelpers.toId(ad)
-    const keyAdDone = 'ad-done:' + adId
+    // const keyAdDone = 'ad-done:' + adId
 
-    const isDone = await this._cache.get(keyAdDone, false)
+    const adsStateKeyAtIndex = this._cacheKeys.pageAdsState(pageIndex)
 
+    // let isDone = await this._cache.get(keyAdDone, false)
+    let adsStateForPageIndex = await redisClient.hgetallAsync(adsStateKeyAtIndex)
+    adsStateForPageIndex = adsStateForPageIndex || {}
+    let isDone = adsStateForPageIndex[adId] || false
+
+    await redisClient.rpushAsync('before_is_done_check', Math.random())
     if (isDone) return
 
     await AdsManager.enqueue(ad)
 
-    await this._cache.put(keyAdDone, true)
+    // await this._cache.put(keyAdDone, true)
+    await redisClient.hsetAsync(adsStateKeyAtIndex, adId, true)
   }
-
 }
 
 module.exports = ListRunner

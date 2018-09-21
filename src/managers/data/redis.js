@@ -1,6 +1,9 @@
-const { promisify } = require('util')
 const redis = require('redis')
+var bluebirdPromise = require('bluebird')
+const { promisify } = require('util')
 const Config = require('config')
+
+bluebirdPromise.promisifyAll(redis.RedisClient.prototype)
 
 function redisClient() {
   const redisConfig = Config.get('redis')
@@ -16,9 +19,4 @@ function redisClient() {
 }
 
 const _redisClient = redisClient()
-const hmsetAsync = promisify(_redisClient.hmset).bind(_redisClient)
-
-module.exports = {
-  redisClient: _redisClient,
-  hmsetAsync
-}
+module.exports = _redisClient
