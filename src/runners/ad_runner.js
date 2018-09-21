@@ -6,11 +6,11 @@ const HistoryManager = require('managers/history')
 const StatsManager = require('managers/stats')
 const PhoneNumberManager = require('managers/phone_number')
 const commonHelpers = require('helpers/common')
+const redisClient = require('managers/data/redis')
 
 const MAX_RETRIES = 10
 
 class AdRunner {
-
   constructor(options) {
     this._options = options
 
@@ -36,6 +36,7 @@ class AdRunner {
     const runId = HistoryManager.runId
     const isDuplicate = await this._run()
 
+    await redisClient.rpushAsync('ads_runner_run_ad', Math.random())
     await StatsManager.increaseField(runId, 'links_found')
 
     if (isDuplicate === true) return

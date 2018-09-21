@@ -3,6 +3,7 @@ const CacheManager = require('managers/cache')
 const ProxyPool = require('managers/proxy')
 const commonHelpers = require('helpers/common')
 const TaskQueue = require('utils/task_queue')
+const redisClient = require('managers/data/redis')
 
 class AdsManager {
 
@@ -70,6 +71,7 @@ class AdsManager {
       logger: this._logger
     })
 
+    await redisClient.rpushAsync('ads_manager_run_ad', Math.random())
     await runner.run()
 
     // remove ad from queue
