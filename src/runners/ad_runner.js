@@ -41,7 +41,7 @@ class AdRunner {
     const runId = HistoryManager.runId
     const isDuplicate = await this._run()
 
-    await redisClient.rpushAsync('ads_runner_run_ad', Math.random())
+    // await redisClient.rpushAsync('ads_runner_run_ad', Math.random())
     await StatsManager.increaseField(runId, 'links_found')
 
     if (isDuplicate === true) return

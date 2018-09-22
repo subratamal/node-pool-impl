@@ -1,9 +1,9 @@
 const lodash = require('lodash')
-const Config = __src('config')
-const DataManager = __src('managers/data')
-const CacheManager = __src('managers/cache')
-const LogManager = __src('managers/log')
-const TaskQueue = __src('utils/task_queue')
+const Config = require('config')
+const DataManager = require('managers/data')
+const CacheManager = require('managers/cache')
+const LogManager = require('managers/log')
+const TaskQueue = require('utils/task_queue')
 
 const DEFAULT_FLUSH_THRESHOLD = 50
 const DEFAULT_COUNTING_FIELD = 'links_found'

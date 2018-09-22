@@ -12,8 +12,9 @@ class HistoryManager {
     return this._runId || null
   }
 
-  async init(site) {
+  async init(site, link) {
     this._site = site
+    this._link = link
 
     this._logger = LogManager.for('site').sub('managers.history')
 
@@ -27,6 +28,7 @@ class HistoryManager {
 
     const data = {
       scraper: this._site.domain,
+      category: this._link.categoryLink,
       sleepTime: sleepTime,
       activeProxies: lodash.times(24).map(() => activeProxies)
     }

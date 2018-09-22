@@ -97,7 +97,7 @@ class SiteRunner {
     await CacheManager.init(site, link)
     await ProxyPool.init(site, link, proxy)
     await AddressManager.init(site, { countries })
-    await HistoryManager.init(site)
+    await HistoryManager.init(site, link)
     await PhoneNumberManager.init(site)
     await StatsManager.init(site)
 

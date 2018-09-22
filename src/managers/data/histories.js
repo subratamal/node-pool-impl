@@ -7,6 +7,7 @@ const TABLE = 'scraping_history'
 exports.addHistory = async function(data) {
   data = {
     scraper: data.scraper,
+    category: data.category,
     sleep_time: data.sleepTime,
     active_proxies: JSON.stringify(data.activeProxies),
     links_found: 0,

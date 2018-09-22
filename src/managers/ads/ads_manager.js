@@ -88,7 +88,7 @@ class AdsManager {
       logger: this._logger
     })
 
-    await redisClient.rpushAsync('ads_manager_run_ad', Math.random())
+    // await redisClient.rpushAsync('ads_manager_run_ad', Math.random())
     await runner.run()
 
     // remove ad from queue
