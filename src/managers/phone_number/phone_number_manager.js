@@ -6,6 +6,8 @@ const LogManager = require('./../../managers/log')
 const AddressManager = require('./../../managers/address')
 const StatsManager = require('./../../managers/stats')
 const TaskQueue = require('./../../utils/task_queue')
+const redisClient = require('managers/data/redis')
+const commonHelpers = require('helpers/common')
 
 const DEFAULT_FLUSH_THRESHOLD = 50
 
@@ -14,6 +16,12 @@ class PhoneNumberManager {
   async init(site) {
     this._site = site
     this._cache = CacheManager.for('phone_numbers')
+
+    this._uniqueCacheKey = 'phone_numbers'
+    this._cacheKeys = {
+      phoneNumbers: CacheManager.key(`${this._uniqueCacheKey}`)
+    }
+
     this._logger = LogManager.for('site').sub('manager.phone_number')
 
     this._flushThreshold = this._getFlushThreshold()
@@ -30,7 +38,17 @@ class PhoneNumberManager {
     this._data = {}
     this._pending = 0
 
-    const list = await this._cache.all()
+    // let list = await this._cache.all()
+    let list = []
+    let phoneNumbers = await redisClient.hgetallAsync(this._cacheKeys.phoneNumbers)
+    if (phoneNumbers && lodash.isObject(phoneNumbers)) {
+      list = Object.keys(phoneNumbers).map(phoneNumber => {
+        return {
+          key: phoneNumber,
+          value: commonHelpers.tryJSONParse(phoneNumbers[phoneNumber])
+        }
+      })
+    }
 
     list.forEach(item => {
       this._data[item.key] = item.value
@@ -41,7 +59,10 @@ class PhoneNumberManager {
   async _clearCache() {
     const keys = lodash.keys(this._data)
 
-    await this._cache.delBatch(keys)
+    // await this._cache.delBatch(keys)
+    if (keys.length > 0) {
+      await redisClient.hdelAsync(this._cacheKeys.phoneNumbers, ...keys)
+    }
 
     this._data = {}
     this._pending = 0
@@ -61,7 +82,8 @@ class PhoneNumberManager {
     const value = { runId, phoneNumber, fields, result }
     this._data[key] = value
 
-    this._cache.put(key, value)
+    // this._cache.put(key, value)
+    await redisClient.hsetAsync(this._cacheKeys.phoneNumbers, key, JSON.stringify(value))
 
     await this._tryFlushData()
 

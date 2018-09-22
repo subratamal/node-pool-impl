@@ -4,6 +4,8 @@ const DataManager = require('managers/data')
 const CacheManager = require('managers/cache')
 const LogManager = require('managers/log')
 const TaskQueue = require('utils/task_queue')
+const redisClient = require('managers/data/redis')
+const commonHelpers = require('helpers/common')
 
 const DEFAULT_FLUSH_THRESHOLD = 50
 const DEFAULT_COUNTING_FIELD = 'links_found'
@@ -13,6 +15,12 @@ class StatsManager {
   async init(site) {
     this._site = site
     this._cache = CacheManager.for('stats')
+
+    this._uniqueCacheKey = 'stats'
+    this._cacheKeys = {
+      stats: CacheManager.key(`${this._uniqueCacheKey}`)
+    }
+
     this._logger = LogManager.for('site').sub('manager.stats')
 
     this._flushThreshold = this._getFlushThreshold()
@@ -30,7 +38,17 @@ class StatsManager {
     this._data = {}
     this._pending = 0
 
-    const list = await this._cache.all()
+    // const list = await this._cache.all()
+    let list = []
+    let stats = await redisClient.hgetallAsync(this._cacheKeys.stats)
+    if (stats && lodash.isObject(stats)) {
+      list = Object.keys(stats).map(stat => {
+        return {
+          key: stat,
+          value: commonHelpers.tryJSONParse(stats[stat])
+        }
+      })
+    }
 
     list.forEach(item => {
       this._data[item.key] = item.value
@@ -41,7 +59,10 @@ class StatsManager {
   async _clearCache() {
     const keys = lodash.keys(this._data)
 
-    await this._cache.delBatch(keys)
+    // await this._cache.delBatch(keys)
+    if (keys.length > 0) {
+      await redisClient.hdelAsync(this._cacheKeys.stats, ...keys)
+    }
 
     this._data = {}
     this._pending = 0
@@ -58,7 +79,8 @@ class StatsManager {
     this._updatePending(field, increase)
 
     this._data[key] = value
-    await this._cache.put(key, value)
+    // await this._cache.put(key, value)
+    await redisClient.hsetAsync(this._cacheKeys.stats, key, JSON.stringify(value))
 
     await this._tryFlushData()
   }
